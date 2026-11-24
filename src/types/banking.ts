@@ -1,4 +1,9 @@
-export type EstadoCivil = "Solteiro" | "Casado" | "Viúvo" | "Divorciado";
+export type EstadoCivil =
+    | "Solteiro"
+    | "Casado"
+    | "Viúvo"
+    | "Divorciado"
+    | "Não Possui"; // Para casos de CNPJ, onde não há estado civil;
 
 export type TipoConta = "corrente" | "poupanca";
 

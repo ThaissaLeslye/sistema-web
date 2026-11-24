@@ -1,4 +1,40 @@
+import { useEffect, useState } from "react";
+import {
+    carregarDadosBancarios,
+    type DadosPlanilhaBancaria,
+} from "./services/planilhaService";
+import type { EstadoRequisicao } from "./types/banking";
+
 function App() {
+    const [estadoDados, setEstadoDados] = useState<
+        EstadoRequisicao<DadosPlanilhaBancaria>
+    >({ status: "loading" });
+
+    useEffect(() => {
+        let ativo = true;
+
+        async function inicializarDados(): Promise<void> {
+            try {
+                const dados = await carregarDadosBancarios();
+                if (!ativo) return;
+                setEstadoDados({ status: "success", dados });
+            } catch (erro: unknown) {
+                if (!ativo) return;
+                const mensagem =
+                    erro instanceof Error
+                        ? erro.message
+                        : "Não foi possível carregar os dados da planilha.";
+                setEstadoDados({ status: "error", mensagem });
+            }
+        }
+
+        void inicializarDados();
+
+        return () => {
+            ativo = false;
+        };
+    }, []);
+
     return (
         <>
             <a href="#conteudo-principal" className="skip-link">
@@ -45,7 +81,7 @@ function App() {
 
                     <nav aria-label="Navegação principal">
                         <span style={{ fontSize: "0.875rem", opacity: 0.9 }}>
-                            Sistema em preparação
+                            Camada de Dados Ativa
                         </span>
                     </nav>
                 </div>
@@ -62,7 +98,7 @@ function App() {
                 }}
             >
                 <section
-                    aria-labelledby="titulo-boas-vindas"
+                    aria-labelledby="titulo-status-dados"
                     style={{
                         backgroundColor: "var(--cor-superficie)",
                         border: "1px solid var(--cor-borda)",
@@ -71,7 +107,7 @@ function App() {
                     }}
                 >
                     <h1
-                        id="titulo-boas-vindas"
+                        id="titulo-status-dados"
                         style={{
                             margin: "0 0 0.5rem",
                             fontSize: "1.5rem",
@@ -80,16 +116,49 @@ function App() {
                     >
                         Portal de Gestão de Clientes
                     </h1>
-                    <p
-                        style={{
-                            margin: 0,
-                            color: "var(--cor-texto-secundario)",
-                        }}
-                    >
-                        Estrutura base inicializada. Em breve você poderá
-                        consultar clientes, contas bancárias, agências e
-                        realizar novos cadastros.
-                    </p>
+
+                    {estadoDados.status === "loading" && (
+                        <p
+                            style={{
+                                margin: 0,
+                                color: "var(--cor-texto-secundario)",
+                            }}
+                        >
+                            Carregando e normalizando dados da planilha...
+                        </p>
+                    )}
+
+                    {estadoDados.status === "error" && (
+                        <p
+                            role="alert"
+                            style={{ margin: 0, color: "var(--cor-erro)" }}
+                        >
+                            {estadoDados.mensagem}
+                        </p>
+                    )}
+
+                    {estadoDados.status === "success" && (
+                        <p
+                            style={{
+                                margin: 0,
+                                color: "var(--cor-texto-secundario)",
+                            }}
+                        >
+                            Base sincronizada com sucesso:{" "}
+                            <strong>
+                                {estadoDados.dados.clientes.length} clientes
+                            </strong>
+                            ,{" "}
+                            <strong>
+                                {estadoDados.dados.contas.length} contas
+                            </strong>{" "}
+                            e{" "}
+                            <strong>
+                                {estadoDados.dados.agencias.length} agências
+                            </strong>{" "}
+                            carregados.
+                        </p>
+                    )}
                 </section>
             </main>
 
