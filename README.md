@@ -6,9 +6,10 @@ Aplicação web desenvolvida em **React**, **TypeScript (modo estrito)** e **Vit
 
 ```text
 src/
-├── components/   # Componentes reutilizáveis de interface e resiliência (ex.: ErrorBoundary)
+├── components/   # Componentes reutilizáveis de interface e resiliência (ErrorBoundary, TabelaClientes)
 ├── config/       # Constantes imutáveis de configuração (URLs das abas CSV)
 ├── context/      # Estado global em memória para clientes, contas e agências
+├── hooks/        # Custom hooks para encapsular ciclo de vida e requisições assíncronas (useDadosBancarios)
 ├── pages/        # Telas principais (Listagem, Detalhes do Cliente, Novo Cliente, Agências)
 ├── services/     # Comunicação HTTP (Fetch API) e leitura tipada das abas CSV
 ├── types/        # Contratos TypeScript estritos do domínio bancário
@@ -16,28 +17,35 @@ src/
 
 ```
 
-## Camada de Dados CSV e Matriz de Anomalias
+### Camada de Dados CSV e Matriz de Anomalias
 
 Os dados são consumidos em tempo de execução via `fetch()` + `Response.text()` e processados com **PapaParse** (`header: true`, `skipEmptyLines: 'greedy'`) combinado com funções puras em `src/utils/normalizadores.ts`.
 
-### Matriz de Anomalias Identificadas (`Anomalia → Decisão`)
+#### Escolha do PapaParse + Funções Puras
 
-| Aba                                | Anomalia Observada no CSV Real                                                                                                 | Decisão Técnica Adotada                                                                                                                                                     |
-| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `clientes`                         | 14 colunas vazias extras sem cabeçalho ao final de todas as linhas (`""`)                                                      | Uso do PapaParse com cabeçalho nomeado e mapeamento explícito apenas das propriedades esperadas em `normalizarCliente`, descartando colunas excedentes.                     |
-| `clientes`                         | Datas no formato ISO `YYYY-MM-DD` (ex.: `1990-05-14`) que recuam 1 dia em `new Date(str)` no fuso `UTC-3`                      | Extração explícita de ano, mês e dia via regex e instanciação local `new Date(ano, mes - 1, dia)` em `normalizarData`.                                                      |
-| `clientes`                         | Registro de Pessoa Jurídica (`CLI-004`, CNPJ de 14 dígitos) preenchido com `estadoCivil: "Casado"` e `rg: "ISENTO"`            | Inclusão de `"Não Possui"` no tipo `EstadoCivil` e detecção automática de CNPJ (14 dígitos) via `ehPessoaJuridica()` para atribuir `"Não Possui"`.                          |
-| `clientes`                         | Campos opcionais (`nomeSocial`, `rg`) retornados como string vazia `""`                                                        | Higienização via `normalizarTextoVazio()`, convertendo strings vazias ou só com espaços em `undefined`.                                                                     |
-| `clientes` / `contas` / `agencias` | Valores monetários e códigos numéricos vindos como texto (`"4250.75"`, `"1001"`) e chaves de CPF/CNPJ podendo conter pontuação | Conversão segura via `normalizarNumero()` (suportando ponto ou vírgula decimal com fallback `0`) e comparação relacional sempre pelos dígitos puros via `extrairDigitos()`. |
-| Todas                              | Possibilidade de linhas em branco ou registros corrompidos sem identificadores obrigatórios (`id`, `nome`, `cpfCnpj`/`codigo`) | Descarte defensivo (`return null` + filtro tipado) antes de expor as listas à interface.                                                                                    |
+- **PapaParse (`header: true`, `skipEmptyLines: 'greedy'`):** Adotado para lidar com campos entre aspas, vírgulas internas em endereços e descarte automático de linhas vazias sem acoplar lógica de parsing aos componentes React.
+- **Funções Puras (`src/utils/normalizadores.ts`):** Cada linha bruta passa por transformações determinísticas e sem efeitos colaterais antes de entrar no estado da aplicação.
+- **Separação entre Dado Normalizado e Exibição (`src/utils/formatadores.ts`):** Documentos (`cpfCnpj`) são mantidos apenas com dígitos no estado para preservar integridade relacional e buscas, recebendo máscara visual apenas na renderização.
 
-## Fluxo de Versionamento (Git Flow)
+#### Matriz de Anomalias e Decisões Técnicas
+
+| Aba / Campo                  | Anomalia Identificada na Inspeção                                                           | Decisão de Normalização                                                                                       |
+| ---------------------------- | ------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `clientes` (colunas finais)  | Presença de 14 colunas vazias sem título ao final de todas as linhas                        | `Papa.parse` com `header: true` mapeia apenas cabeçalhos nomeados; colunas sem chave são ignoradas            |
+| `clientes.dataNascimento`    | Datas entregues como string ISO (`"1990-05-14"`); `new Date(iso)` recua 1 dia no fuso UTC-3 | `normalizarData()` extrai ano, mês e dia via regex e instancia `new Date(ano, mes - 1, dia)` no horário local |
+| `clientes.nomeSocial` / `rg` | Campos opcionais ausentes vêm como string vazia `""` (ou `"ISENTO"` no RG de PJ)            | `normalizarTextoVazio()` converte strings vazias ou só com espaços em `undefined`                             |
+| `clientes.estadoCivil` (PJ)  | Registro PJ (`CLI-004`, CNPJ `12345678000199`) veio preenchido como `"Casado"` na planilha  | `ehPessoaJuridica()` detecta 14 dígitos e atribui `"Não Possui"`; para PF, valida com fallback `"Solteiro"`   |
+| `cpfCnpj` e `cpfCnpjCliente` | Chaves de vínculo sem máscara (`"11122233344"`), mas buscas podem conter `.`, `-` e `/`     | `extrairDigitos()` remove caracteres não numéricos (`\D`) para comparação consistente                         |
+| Campos numéricos e códigos   | Valores financeiros (`"4250.75"`) e `codigoAgencia` (`"1001"`) chegam como texto            | `normalizarNumero()` suporta ponto ou vírgula decimal e converte para `number` seguro (`Number.isFinite`)     |
+| Registros incompletos        | Eventuais linhas em branco ou sem identificadores essenciais                                | Registros sem `id`, `nome` ou `cpfCnpj` (ou `codigo <= 0` em agências) são descartados (`null`)               |
+
+### Fluxo de Versionamento (Git Flow)
 
 - **`main`**: Branch de produção estável (base do deploy).
 - **`develop`**: Branch de integração contínua das funcionalidades.
 - **`feature/*`**: Branches isoladas por entrega, integradas à `develop` sequencialmente via Pull Request sem avanço rápido (`--no-ff`) para rastreabilidade completa do histórico.
 
-## Como Executar Localmente
+### Como Executar Localmente
 
 ```bash
 npm install
