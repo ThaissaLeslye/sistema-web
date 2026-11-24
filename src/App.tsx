@@ -1,51 +1,34 @@
 import { useEffect, useState } from "react";
 import {
-    inspecionarAbasPlanilha,
-    type RelatorioInspecaoAba,
-} from "./services/inspecaoCsv";
+    carregarDadosBancarios,
+    type DadosPlanilhaBancaria,
+} from "./services/planilhaService";
+import type { EstadoRequisicao } from "./types/banking";
 
 function App() {
-    const [statusInspecao, setStatusInspecao] = useState<
-        "carregando" | "concluido" | "erro"
-    >("carregando");
-    const [relatorios, setRelatorios] = useState<RelatorioInspecaoAba[]>([]);
-    const [erroDetalhes, setErroDetalhes] = useState<string>("");
+    const [estadoDados, setEstadoDados] = useState<
+        EstadoRequisicao<DadosPlanilhaBancaria>
+    >({ status: "loading" });
 
     useEffect(() => {
         let ativo = true;
 
-        async function executarInspecao(): Promise<void> {
+        async function inicializarDados(): Promise<void> {
             try {
-                const dados = await inspecionarAbasPlanilha();
+                const dados = await carregarDadosBancarios();
                 if (!ativo) return;
-
-                setRelatorios(dados);
-                setStatusInspecao("concluido");
-                console.warn(
-                    "=== INSPEÇÃO HTTP DAS ABAS CSV (SISTEMA WEB) ===",
-                );
-                for (const item of dados) {
-                    console.warn(
-                        `[Aba: ${item.aba}] Status: ${item.statusHttp} | Content-Type: ${item.contentType}`,
-                    );
-                    console.warn("Cabeçalho:", item.cabecalhoBruto);
-                    console.warn(
-                        "Amostra (5 primeiras linhas):",
-                        item.amostraLinhas,
-                    );
-                }
+                setEstadoDados({ status: "success", dados });
             } catch (erro: unknown) {
                 if (!ativo) return;
                 const mensagem =
                     erro instanceof Error
                         ? erro.message
-                        : "Erro desconhecido ao acessar a planilha.";
-                setErroDetalhes(mensagem);
-                setStatusInspecao("erro");
+                        : "Não foi possível carregar os dados da planilha.";
+                setEstadoDados({ status: "error", mensagem });
             }
         }
 
-        void executarInspecao();
+        void inicializarDados();
 
         return () => {
             ativo = false;
@@ -98,7 +81,7 @@ function App() {
 
                     <nav aria-label="Navegação principal">
                         <span style={{ fontSize: "0.875rem", opacity: 0.9 }}>
-                            Diagnóstico de Dados CSV
+                            Camada de Dados Ativa
                         </span>
                     </nav>
                 </div>
@@ -115,7 +98,7 @@ function App() {
                 }}
             >
                 <section
-                    aria-labelledby="titulo-inspecao"
+                    aria-labelledby="titulo-status-dados"
                     style={{
                         backgroundColor: "var(--cor-superficie)",
                         border: "1px solid var(--cor-borda)",
@@ -124,90 +107,57 @@ function App() {
                     }}
                 >
                     <h1
-                        id="titulo-inspecao"
+                        id="titulo-status-dados"
                         style={{
                             margin: "0 0 0.5rem",
                             fontSize: "1.5rem",
                             color: "var(--cor-primaria-escura)",
                         }}
                     >
-                        Inspeção HTTP das Abas CSV
+                        Portal de Gestão de Clientes
                     </h1>
 
-                    {statusInspecao === "carregando" && (
+                    {estadoDados.status === "loading" && (
                         <p
                             style={{
                                 margin: 0,
                                 color: "var(--cor-texto-secundario)",
                             }}
                         >
-                            Consultando abas clientes, contas e agencias via
-                            Fetch API...
+                            Carregando e normalizando dados da planilha...
                         </p>
                     )}
 
-                    {statusInspecao === "erro" && (
+                    {estadoDados.status === "error" && (
                         <p
                             role="alert"
                             style={{ margin: 0, color: "var(--cor-erro)" }}
                         >
-                            Falha na requisição: {erroDetalhes}
+                            {estadoDados.mensagem}
                         </p>
                     )}
 
-                    {statusInspecao === "concluido" && (
-                        <div
+                    {estadoDados.status === "success" && (
+                        <p
                             style={{
-                                display: "grid",
-                                gap: "1rem",
-                                marginTop: "1rem",
+                                margin: 0,
+                                color: "var(--cor-texto-secundario)",
                             }}
                         >
-                            {relatorios.map((item) => (
-                                <article
-                                    key={item.aba}
-                                    style={{
-                                        border: "1px solid var(--cor-borda)",
-                                        borderRadius: "6px",
-                                        padding: "1rem",
-                                        backgroundColor:
-                                            "var(--cor-fundo-pagina)",
-                                    }}
-                                >
-                                    <strong>
-                                        Aba: {item.aba} (HTTP {item.statusHttp}{" "}
-                                        · {item.totalLinhas} linhas)
-                                    </strong>
-                                    <p
-                                        style={{
-                                            margin: "0.25rem 0",
-                                            fontSize: "0.85rem",
-                                            color: "var(--cor-texto-secundario)",
-                                        }}
-                                    >
-                                        Content-Type:{" "}
-                                        {item.contentType ?? "não informado"}
-                                    </p>
-                                    <pre
-                                        style={{
-                                            margin: "0.5rem 0 0",
-                                            padding: "0.75rem",
-                                            backgroundColor:
-                                                "var(--cor-superficie)",
-                                            border: "1px solid var(--cor-borda)",
-                                            borderRadius: "4px",
-                                            overflowX: "auto",
-                                            fontSize: "0.8rem",
-                                        }}
-                                    >
-                                        {[
-                                            item.cabecalhoBruto,
-                                            ...item.amostraLinhas,
-                                        ].join("\n")}
-                                    </pre>
-                                </article>
-                            ))}
-                        </div>
+                            Base sincronizada com sucesso:{" "}
+                            <strong>
+                                {estadoDados.dados.clientes.length} clientes
+                            </strong>
+                            ,{" "}
+                            <strong>
+                                {estadoDados.dados.contas.length} contas
+                            </strong>{" "}
+                            e{" "}
+                            <strong>
+                                {estadoDados.dados.agencias.length} agências
+                            </strong>{" "}
+                            carregados.
+                        </p>
                     )}
                 </section>
             </main>
