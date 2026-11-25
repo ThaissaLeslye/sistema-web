@@ -15,21 +15,27 @@
     /* Tokens tipográficos e de espaçamento */
     --fonte-principal: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
     --largura-maxima-container: 1200px;
+
+    /* Sobrescrita das variáveis de tema do Bootstrap 5 via cascata */
+    --bs-primary: var(--cor-primaria);
+    --bs-primary-rgb: 0, 124, 194;
+    --bs-secondary: var(--cor-texto-secundario);
+    --bs-secondary-rgb: 71, 85, 105;
+    --bs-success: var(--cor-sucesso);
+    --bs-success-rgb: 21, 128, 61;
+    --bs-danger: var(--cor-erro);
+    --bs-danger-rgb: 185, 28, 28;
+    --bs-body-font-family: var(--fonte-principal);
+    --bs-body-bg: var(--cor-fundo-pagina);
+    --bs-body-color: var(--cor-texto-principal);
+    --bs-border-color: var(--cor-borda);
+    --bs-link-color: var(--cor-primaria);
+    --bs-link-hover-color: var(--cor-primaria-hover);
+    --bs-focus-ring-color: rgba(0, 124, 194, 0.25);
 }
 
-/* Reset global e estrutura base de altura total */
-*,
-*::before,
-*::after {
-    box-sizing: border-box;
-}
-
+/* Mantém apenas suavização tipográfica complementar ao Bootstrap Reboot */
 body {
-    margin: 0;
-    font-family: var(--fonte-principal);
-    background-color: var(--cor-fundo-pagina);
-    color: var(--cor-texto-principal);
-    line-height: 1.5;
     -webkit-font-smoothing: antialiased;
 }
 

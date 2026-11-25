@@ -50,49 +50,42 @@ export class ErrorBoundary extends Component<
                 <div
                     role="alert"
                     style={{
-                        maxWidth: "520px",
-                        margin: "4rem auto",
-                        padding: "2rem",
+                        maxWidth: "36rem",
+                        margin: "3rem auto",
+                        padding: "1.5rem",
+                        backgroundColor: "var(--cor-superficie)",
+                        border: "1px solid var(--cor-erro)",
                         borderRadius: "8px",
-                        border: "1px solid #E2E8F0",
-                        backgroundColor: "#FFFFFF",
-                        color: "#0F172A",
-                        fontFamily: "system-ui, sans-serif",
-                        textAlign: "center",
+                        color: "var(--cor-texto-principal)",
                     }}
                 >
                     <h1
                         style={{
+                            marginTop: 0,
                             fontSize: "1.25rem",
-                            color: "#003B73",
-                            marginBottom: "0.75rem",
+                            color: "var(--cor-erro)",
                         }}
                     >
-                        Não foi possível exibir esta página
+                        Ocorreu um erro inesperado na aplicação
                     </h1>
-                    <p
-                        style={{
-                            fontSize: "0.95rem",
-                            color: "#475569",
-                            marginBottom: "1.5rem",
-                        }}
-                    >
-                        {this.state.errorMessage}
+                    <p style={{ color: "var(--cor-texto-secundario)" }}>
+                        {this.state.errorMessage ||
+                            "Não foi possível renderizar esta tela."}
                     </p>
                     <button
                         type="button"
-                        onClick={this.handleRecarregar}
+                        onClick={() => this.handleRecarregar()}
                         style={{
-                            backgroundColor: "#0070C0",
-                            color: "#FFFFFF",
-                            border: "none",
+                            padding: "0.5rem 1rem",
+                            backgroundColor: "var(--cor-primaria-escura)",
+                            color: "var(--cor-superficie)",
+                            border: "1px solid var(--cor-primaria-escura)",
                             borderRadius: "6px",
-                            padding: "0.625rem 1.25rem",
-                            fontWeight: 600,
                             cursor: "pointer",
+                            fontWeight: 600,
                         }}
                     >
-                        Recarregar aplicação
+                        Recarregar página
                     </button>
                 </div>
             );
