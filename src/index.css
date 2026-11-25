@@ -1,7 +1,9 @@
 :root {
-    --cor-primaria-escura: #003b73;
+    /* Tokens de cor institucionais */
+    --cor-primaria-escura: #1e0ae8;
     --cor-primaria: #0070c0;
     --cor-primaria-hover: #005a9e;
+    --cor-destaque: #00ac15;
     --cor-fundo-pagina: #f5f7fa;
     --cor-superficie: #ffffff;
     --cor-borda: #e2e8f0;
@@ -10,6 +12,7 @@
     --cor-sucesso: #15803d;
     --cor-erro: #b91c1c;
 
+    /* Tokens tipográficos e de espaçamento */
     --fonte-principal: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
     --largura-maxima-container: 1200px;
 }

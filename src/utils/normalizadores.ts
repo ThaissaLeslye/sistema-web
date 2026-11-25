@@ -3,28 +3,36 @@ import type {
     Cliente,
     Conta,
     EstadoCivil,
-    TipoConta,
+    EstadoCivilPessoaFisica,
+    TipoContaNormalizado,
 } from "../types/banking";
 
-const ESTADOS_CIVIS_PF: readonly EstadoCivil[] = [
+// Lista imutável dos estados civis aplicáveis exclusivamente a Pessoa Física
+const ESTADOS_CIVIS_PF: readonly EstadoCivilPessoaFisica[] = [
     "Solteiro",
     "Casado",
     "Viúvo",
     "Divorciado",
 ];
 
-function isEstadoCivilPfValido(valor: string): valor is EstadoCivil {
+// Type Guard para validar estado civil de Pessoa Física sem asserções de tipo inseguras
+function isEstadoCivilPfValido(
+    valor: string,
+): valor is EstadoCivilPessoaFisica {
     return ESTADOS_CIVIS_PF.some((estado) => estado === valor);
 }
 
+// Remove caracteres não numéricos para comparação e armazenamento consistente de documentos
 export function extrairDigitos(valor: string): string {
     return valor.replace(/\D/g, "");
 }
 
+// Identifica Pessoa Jurídica pelo comprimento padrão de 14 dígitos do CNPJ
 export function ehPessoaJuridica(cpfCnpj: string): boolean {
     return extrairDigitos(cpfCnpj).length === 14;
 }
 
+// Converte textos vazios ou compostos apenas por espaços em undefined
 export function normalizarTextoVazio(
     valor: string | undefined,
 ): string | undefined {
@@ -33,31 +41,56 @@ export function normalizarTextoVazio(
     return limpo.length > 0 ? limpo : undefined;
 }
 
-export function normalizarNumero(valor: string | undefined): number {
-    if (!valor) return 0;
+// Converte texto numérico (ponto ou vírgula decimal) em number; retorna undefined se ausente ou ilegível
+export function normalizarNumero(
+    valor: string | undefined,
+): number | undefined {
+    if (!valor) return undefined;
     const limpo = valor.trim();
-    if (limpo.length === 0) return 0;
+    if (limpo.length === 0) return undefined;
 
-    // Trata formato brasileiro (1.250,50)
     const normalizado = limpo.includes(",")
         ? limpo.replace(/\./g, "").replace(",", ".")
         : limpo;
 
     const numero = Number(normalizado);
-    return Number.isFinite(numero) ? numero : 0;
+    return Number.isFinite(numero) ? numero : undefined;
 }
 
-// Converte data ISO (YYYY-MM-DD) ou BR (DD/MM/YYYY) para Date local — evita o recuo de 1 dia causado pelo fuso UTC-3
-export function normalizarData(valor: string | undefined): Date {
-    if (!valor) return new Date(NaN);
+// Instancia Date no horário local e verifica se ano, mês e dia não sofreram rollover de calendário
+function criarDataLocalValida(
+    ano: number,
+    mes: number,
+    dia: number,
+): Date | undefined {
+    if (mes < 1 || mes > 12 || dia < 1 || dia > 31) {
+        return undefined;
+    }
+
+    const data = new Date(ano, mes - 1, dia);
+    if (
+        data.getFullYear() !== ano ||
+        data.getMonth() !== mes - 1 ||
+        data.getDate() !== dia
+    ) {
+        return undefined;
+    }
+
+    return data;
+}
+
+// Converte data ISO (YYYY-MM-DD) ou brasileira (DD/MM/YYYY) para Date local; retorna undefined se inválida
+export function normalizarData(valor: string | undefined): Date | undefined {
+    if (!valor) return undefined;
     const limpo = valor.trim();
+    if (limpo.length === 0) return undefined;
 
     const matchIso = /^(\d{4})-(\d{2})-(\d{2})$/.exec(limpo);
     if (matchIso) {
         const ano = Number(matchIso[1]);
         const mes = Number(matchIso[2]);
         const dia = Number(matchIso[3]);
-        return new Date(ano, mes - 1, dia);
+        return criarDataLocalValida(ano, mes, dia);
     }
 
     const matchBr = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(limpo);
@@ -65,14 +98,14 @@ export function normalizarData(valor: string | undefined): Date {
         const dia = Number(matchBr[1]);
         const mes = Number(matchBr[2]);
         const ano = Number(matchBr[3]);
-        return new Date(ano, mes - 1, dia);
+        return criarDataLocalValida(ano, mes, dia);
     }
 
-    return new Date(limpo);
+    return undefined;
 }
 
-// Atribui 'Não Possui' para Pessoa Jurídica (CNPJ) e aplica fallback 'Solteiro' para Pessoa Física com valor ausente ou inválido
-function normalizarEstadoCivil(
+// Atribui "Não Possui" para CNPJ e valida estados civis de PF sem inventar valor padrão
+export function normalizarEstadoCivil(
     valor: string | undefined,
     cpfCnpj: string,
 ): EstadoCivil {
@@ -81,15 +114,21 @@ function normalizarEstadoCivil(
     }
 
     const limpo = valor?.trim() ?? "";
-    return isEstadoCivilPfValido(limpo) ? limpo : "Solteiro";
+    return isEstadoCivilPfValido(limpo) ? limpo : "Não Informado";
 }
 
-function normalizarTipoConta(valor: string | undefined): TipoConta {
+// Valida o tipo de conta sem assumir "corrente" quando o dado estiver ausente ou corrompido
+export function normalizarTipoConta(
+    valor: string | undefined,
+): TipoContaNormalizado {
     const limpo = valor?.trim().toLowerCase() ?? "";
-    return limpo === "poupanca" ? "poupanca" : "corrente";
+    if (limpo === "corrente" || limpo === "poupanca") {
+        return limpo;
+    }
+    return "Não Informado";
 }
 
-// Mapeia uma linha bruta da aba 'clientes' para a interface Cliente — descarta registros sem id, nome ou cpfCnpj
+// Mapeia uma linha bruta da aba "clientes" descartando registros sem identificadores essenciais
 export function normalizarCliente(
     linha: Record<string, string | undefined>,
 ): Cliente | null {
@@ -103,23 +142,28 @@ export function normalizarCliente(
 
     const rg = normalizarTextoVazio(linha.rg);
     const nomeSocial = normalizarTextoVazio(linha.nomeSocial);
+    const dataNascimento = normalizarData(linha.dataNascimento);
+    const rendaAnual = normalizarNumero(linha.rendaAnual);
+    const patrimonio = normalizarNumero(linha.patrimonio);
+    const codigoAgencia = normalizarNumero(linha.codigoAgencia);
 
     return {
         id,
         cpfCnpj,
         ...(rg !== undefined ? { rg } : {}),
-        dataNascimento: normalizarData(linha.dataNascimento),
+        ...(dataNascimento !== undefined ? { dataNascimento } : {}),
         nome,
         ...(nomeSocial !== undefined ? { nomeSocial } : {}),
         email: linha.email?.trim() ?? "",
         endereco: linha.endereco?.trim() ?? "",
-        rendaAnual: normalizarNumero(linha.rendaAnual),
-        patrimonio: normalizarNumero(linha.patrimonio),
+        ...(rendaAnual !== undefined ? { rendaAnual } : {}),
+        ...(patrimonio !== undefined ? { patrimonio } : {}),
         estadoCivil: normalizarEstadoCivil(linha.estadoCivil, cpfCnpj),
-        codigoAgencia: normalizarNumero(linha.codigoAgencia),
+        ...(codigoAgencia !== undefined ? { codigoAgencia } : {}),
     };
 }
 
+// Mapeia uma linha bruta da aba "contas" preservando valores ausentes como undefined ou "Não Informado"
 export function normalizarConta(
     linha: Record<string, string | undefined>,
 ): Conta | null {
@@ -130,16 +174,21 @@ export function normalizarConta(
         return null;
     }
 
+    const saldo = normalizarNumero(linha.saldo);
+    const limiteCredito = normalizarNumero(linha.limiteCredito);
+    const creditoDisponivel = normalizarNumero(linha.creditoDisponivel);
+
     return {
         id,
         cpfCnpjCliente,
         tipo: normalizarTipoConta(linha.tipo),
-        saldo: normalizarNumero(linha.saldo),
-        limiteCredito: normalizarNumero(linha.limiteCredito),
-        creditoDisponivel: normalizarNumero(linha.creditoDisponivel),
+        ...(saldo !== undefined ? { saldo } : {}),
+        ...(limiteCredito !== undefined ? { limiteCredito } : {}),
+        ...(creditoDisponivel !== undefined ? { creditoDisponivel } : {}),
     };
 }
 
+// Mapeia uma linha bruta da aba "agencias" descartando registros sem código numérico positivo válido
 export function normalizarAgencia(
     linha: Record<string, string | undefined>,
 ): Agencia | null {
@@ -147,7 +196,7 @@ export function normalizarAgencia(
     const nome = linha.nome?.trim() ?? "";
     const codigo = normalizarNumero(linha.codigo);
 
-    if (!id || !nome || codigo <= 0) {
+    if (!id || !nome || codigo === undefined || codigo <= 0) {
         return null;
     }
 
