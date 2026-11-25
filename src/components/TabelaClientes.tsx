@@ -1,11 +1,12 @@
-import type { Cliente, EstadoRequisicao } from "../types/banking";
 import { formatarCpfCnpj } from "../utils/formatadores";
+import type { Cliente, EstadoRequisicao } from "../types/banking";
 
 export interface TabelaClientesProps {
     estado: EstadoRequisicao<readonly Cliente[]>;
     onTentarNovamente: () => void;
 }
 
+// Renderiza os estados de carregamento, erro, vazio e a tabela semântica de clientes
 export function TabelaClientes({
     estado,
     onTentarNovamente,
@@ -67,7 +68,7 @@ export function TabelaClientes({
                             <td>{cliente.nome}</td>
                             <td>{formatarCpfCnpj(cliente.cpfCnpj)}</td>
                             <td>{cliente.email || "Não informado"}</td>
-                            <td>{cliente.codigoAgencia}</td>
+                            <td>{cliente.codigoAgencia ?? "Não informado"}</td>
                             <td>{cliente.estadoCivil}</td>
                         </tr>
                     ))}
