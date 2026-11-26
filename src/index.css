@@ -1,9 +1,7 @@
 :root {
     /* Tokens de cor institucionais */
-    --cor-primaria-escura: #1e0ae8;
-    --cor-primaria: #0070c0;
-    --cor-primaria-hover: #005a9e;
-    --cor-destaque: #00ac15;
+    --cor-primaria: rgb(30, 10, 232);
+    --cor-primaria-hover: #00ac15;
     --cor-fundo-pagina: #f5f7fa;
     --cor-superficie: #ffffff;
     --cor-borda: #e2e8f0;
@@ -15,21 +13,60 @@
     /* Tokens tipográficos e de espaçamento */
     --fonte-principal: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
     --largura-maxima-container: 1200px;
+
+    /* Sobrescrita das variáveis de tema do Bootstrap 5 via cascata */
+    --bs-primary: var(--cor-primaria);
+    --bs-primary-rgb: 0, 124, 194;
+    --bs-secondary: var(--cor-texto-secundario);
+    --bs-secondary-rgb: 71, 85, 105;
+    --bs-success: var(--cor-sucesso);
+    --bs-success-rgb: 21, 128, 61;
+    --bs-danger: var(--cor-erro);
+    --bs-danger-rgb: 185, 28, 28;
+    --bs-body-font-family: var(--fonte-principal);
+    --bs-body-bg: var(--cor-fundo-pagina);
+    --bs-body-color: var(--cor-texto-principal);
+    --bs-border-color: var(--cor-borda);
+    --bs-link-color: var(--cor-primaria);
+    --bs-link-hover-color: var(--cor-primaria-hover);
+    --bs-link-color-rgb: 30, 10, 232;
+    --bs-link-hover-color-rgb: 0, 172, 21;
+    --bs-focus-ring-color: rgba(0, 124, 194, 0.25);
 }
 
-/* Reset global e estrutura base de altura total */
-*,
-*::before,
-*::after {
-    box-sizing: border-box;
+/* Sobrescrita das variáveis de componente do Bootstrap 5 para botões institucionais */
+.btn-primary {
+    --bs-btn-color: var(--cor-superficie);
+    --bs-btn-bg: var(--cor-primaria);
+    --bs-btn-border-color: var(--cor-primaria);
+    --bs-btn-hover-color: var(--cor-superficie);
+    --bs-btn-hover-bg: var(--cor-primaria-hover);
+    --bs-btn-hover-border-color: var(--cor-primaria-hover);
+    --bs-btn-focus-shadow-rgb: var(--cor-primaria-rgb);
+    --bs-btn-active-color: var(--cor-superficie);
+    --bs-btn-active-bg: var(--cor-primaria-hover);
+    --bs-btn-active-border-color: var(--cor-primaria-hover);
+    --bs-btn-disabled-color: var(--cor-superficie);
+    --bs-btn-disabled-bg: var(--cor-primaria);
+    --bs-btn-disabled-border-color: var(--cor-primaria);
 }
 
+.btn-outline-primary {
+    --bs-btn-color: var(--cor-primaria);
+    --bs-btn-border-color: var(--cor-primaria);
+    --bs-btn-hover-color: var(--cor-superficie);
+    --bs-btn-hover-bg: var(--cor-primaria);
+    --bs-btn-hover-border-color: var(--cor-primaria);
+    --bs-btn-focus-shadow-rgb: var(--cor-primaria-rgb);
+    --bs-btn-active-color: var(--cor-superficie);
+    --bs-btn-active-bg: var(--cor-primaria-hover);
+    --bs-btn-active-border-color: var(--cor-primaria-hover);
+    --bs-btn-disabled-color: var(--cor-primaria);
+    --bs-btn-disabled-border-color: var(--cor-primaria);
+}
+
+/* Mantém apenas suavização tipográfica complementar ao Bootstrap Reboot */
 body {
-    margin: 0;
-    font-family: var(--fonte-principal);
-    background-color: var(--cor-fundo-pagina);
-    color: var(--cor-texto-principal);
-    line-height: 1.5;
     -webkit-font-smoothing: antialiased;
 }
 
@@ -52,7 +89,7 @@ body {
     z-index: 100;
     padding: 0.5rem 1rem;
     background-color: var(--cor-superficie);
-    color: var(--cor-primaria-escura);
+    color: var(--cor-primaria);
     font-weight: 600;
     border-radius: 4px;
     text-decoration: none;
@@ -60,91 +97,6 @@ body {
 
 .skip-link:focus {
     left: 0.75rem;
-}
-
-/* Estrutura semântica de cabeçalho, conteúdo principal e rodapé */
-.cabecalho-institucional {
-    background-color: var(--cor-primaria-escura);
-    color: #ffffff;
-    padding: 1rem 1.5rem;
-}
-
-.cabecalho-institucional__conteudo {
-    max-width: var(--largura-maxima-container);
-    margin: 0 auto;
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.75rem;
-    padding: 0 1.5rem;
-}
-
-.cabecalho-institucional__marca {
-    font-size: 1.25rem;
-    letter-spacing: -0.01em;
-}
-
-.cabecalho-institucional__subtitulo {
-    display: block;
-    font-size: 0.8125rem;
-    opacity: 0.85;
-}
-
-.cabecalho-institucional__status {
-    font-size: 0.875rem;
-    opacity: 0.9;
-}
-
-.conteudo-principal {
-    flex: 1;
-    width: 100%;
-    max-width: var(--largura-maxima-container);
-    margin: 0 auto;
-    padding: 2rem 1.5rem;
-}
-
-.painel-secao {
-    background-color: var(--cor-superficie);
-    border: 1px solid var(--cor-borda);
-    border-radius: 8px;
-    padding: 1.5rem;
-}
-
-.painel-secao__cabecalho {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 0.5rem;
-    margin-bottom: 1.25rem;
-}
-
-.painel-secao__titulo {
-    margin: 0;
-    font-size: 1.375rem;
-    color: var(--cor-primaria-escura);
-    text-transform: uppercase;
-}
-
-.painel-secao__resumo {
-    margin: 0;
-    font-size: 0.875rem;
-    color: var(--cor-texto-secundario);
-}
-
-.rodape-institucional {
-    border-top: 1px solid var(--cor-borda);
-    background-color: var(--cor-superficie);
-    color: var(--cor-texto-secundario);
-    font-size: 0.875rem;
-    padding: 1rem 1.5rem;
-}
-
-.rodape-institucional__conteudo {
-    max-width: var(--largura-maxima-container);
-    margin: 0 auto;
-    text-align: center;
 }
 
 /* Estados de carregamento, erro e lista vazia */
@@ -170,15 +122,16 @@ body {
     padding: 0.5rem 1rem;
     font: inherit;
     font-weight: 600;
-    color: var(--cor-primaria-escura);
+    color: var(--cor-primaria);
     background-color: var(--cor-superficie);
-    border: 1px solid var(--cor-primaria-escura);
+    border: 1px solid var(--cor-primaria);
     border-radius: 6px;
     cursor: pointer;
 }
 
 .botao-secundario:hover {
-    background-color: var(--cor-fundo-pagina);
+    background-color: var(--cor-primaria);
+    color: var(--cor-superficie);
 }
 
 /* Tabela semântica e contêiner responsivo para telas menores */
@@ -209,7 +162,7 @@ body {
 
 .tabela-clientes thead th {
     background-color: var(--cor-fundo-pagina);
-    color: var(--cor-primaria-escura);
+    color: var(--cor-primaria);
     font-weight: 600;
     white-space: nowrap;
 }
