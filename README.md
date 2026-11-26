@@ -10,36 +10,40 @@ src/
 ├── config/       # Constantes imutáveis de configuração (URLs das abas CSV)
 ├── context/      # Estado global em memória para clientes, contas e agências
 ├── hooks/        # Custom hooks para encapsular ciclo de vida e requisições assíncronas (useDadosBancarios)
-├── pages/        # Telas roteadas da aplicação (ClientesPage, ClienteDetalhePage, NovoClientePage, PaginaNaoEncontrada)
+├── pages/        # Telas roteadas da aplicação (ClientesPage com busca e paginação, ClienteDetalhePage, NovoClientePage, PaginaNaoEncontrada)
 ├── services/     # Comunicação HTTP (Fetch API) e leitura tipada das abas CSV
 ├── types/        # Contratos TypeScript estritos do domínio bancário
-└── utils/        # Funções puras de normalização, máscaras, formatadores, validações e testes unitários (Vitest)
+└── utils/        # Funções puras de normalização, filtragem de busca, máscaras, formatadores, validações e testes unitários (Vitest)
 ```
 
 ## Interface, Tema e Roteamento SPA
 
-- **Bootstrap 5 + React-Bootstrap:** Utilizado para estruturação de grid responsivo, barra de navegação colapsável (`Navbar`) e componentes semânticos sem depender do bundle JavaScript imperativo do Bootstrap (`bootstrap.bundle.min.js`), mantendo o controle de estado 100% declarativo no React.
+- **Bootstrap 5 + React-Bootstrap:** Utilizado para estruturação de grid responsivo, barra de navegação colapsável (`Navbar`), tabela responsiva (`Table`) e paginação (`Pagination`) sem depender do bundle JavaScript imperativo do Bootstrap (`bootstrap.bundle.min.js`), mantendo o controle de estado 100% declarativo no React.
 - **Customização de Tema via Cascata CSS (`src/index.css`):** O CSS base do Bootstrap é importado antes de `src/index.css` em `src/main.tsx`, permitindo sobrescrever variáveis nativas (`--bs-primary`, `--bs-body-bg`, `--bs-border-color`, `--bs-btn-*`) com os tokens institucionais do projeto sem editar arquivos da biblioteca nem recorrer a `!important`.
+- **Busca e Paginação Derivadas (`src/utils/filtrosClientes.ts` e `src/pages/ClientesPage.tsx`):**
+- **Filtragem Imutável:** A busca é calculada como estado derivado durante a renderização sem mutar a lista original carregada da planilha. Nomes são comparados via normalização Unicode (`NFD`) ignorando acentos e maiúsculas/minúsculas; documentos são comparados apenas pelos dígitos (`\D`), exigindo ao menos um dígito no termo (`termoDigitos.length > 0`) para evitar falsos positivos.
+- **Paginação e Acessibilidade:** Os resultados filtrados são paginados em blocos de até 10 clientes (`ITENS_POR_PAGINA = 10`) com redefinição automática para a página `1` ao alterar a busca, tratamento explícito de busca sem correspondência (`Limpar busca` com retorno de foco ao campo), anúncio dinâmico de contagem (`role="status"` e `aria-live="polite"`) e links de ação individualizados (`aria-label`) para acesso aos detalhes de cada cliente.
+
 - **Roteamento no Cliente e Fallback SPA (`vercel.json`):** A navegação entre telas ocorre sem recarregamento de página via `react-router-dom`, apoiada pela regra de _rewrite_ (`/(.*) -> /index.html`) na hospedagem para evitar erros HTTP 404 ao acessar ou recarregar rotas internas diretamente.
 
-| Rota             | Página                | Responsabilidade                                       |
-| :--------------- | :-------------------- | :----------------------------------------------------- |
-| `/`              | `ClientesPage`        | Listagem principal de clientes carregados da planilha  |
-| `/clientes/novo` | `NovoClientePage`     | Tela dedicada ao cadastro de novos clientes em memória |
-| `/clientes/:id`  | `ClienteDetalhePage`  | Exibição detalhada do cliente selecionado              |
-| `*`              | `PaginaNaoEncontrada` | Tela de fallback (404) para rotas inexistentes         |
+| Rota             | Página                | Responsabilidade                                                                                  |
+| ---------------- | --------------------- | ------------------------------------------------------------------------------------------------- |
+| `/`              | `ClientesPage`        | Listagem paginada (10 por página), busca em tempo real por nome ou CPF/CNPJ e acesso aos detalhes |
+| `/clientes/novo` | `NovoClientePage`     | Tela dedicada ao cadastro de novos clientes em memória                                            |
+| `/clientes/:id`  | `ClienteDetalhePage`  | Exibição detalhada do cliente selecionado                                                         |
+| `*`              | `PaginaNaoEncontrada` | Tela de fallback (404) para rotas inexistentes                                                    |
 
 ## Camada de Dados CSV e Matriz de Anomalias
 
 Os dados são consumidos em tempo de execução via `fetch()` + `Response.text()` e processados com **PapaParse** (`header: true`, `skipEmptyLines: 'greedy'`) combinado com funções puras em `src/utils/normalizadores.ts`:
 
 - **Separação entre Armazenamento e Exibição (`src/utils/formatadores.ts`):** Identificadores (`cpfCnpj`) são mantidos apenas com dígitos puros nos objetos de domínio para garantir integridade relacional entre clientes e contas; a formatação visual é aplicada exclusivamente na camada de interface.
-- **Recusa a Dados Fabricados (`src/types/banking.ts` e `src/utils/normalizadores.ts`):** Em domínio bancário, células ausentes ou corrompidas não devem ser mascaradas por valores válidos fictícios (como assumir `"Solteiro"`, `"corrente"` ou `0`). Valores inválidos são explicitamente marcados como `"Não Informado"` ou `undefined` e cobertos por testes unitários em `src/utils/normalizadores.test.ts`.
+- **Recusa a Dados Fabricados (`src/types/banking.ts` e `src/utils/normalizadores.ts`):** Em domínio bancário, células ausentes ou corrompidas não devem ser mascaradas por valores válidos fictícios (como assumir `"Solteiro"`, `"corrente"` ou `0`). Valores inválidos são explicitamente marcados como `"Não Informado"` ou `undefined` e cobertos por testes unitários em `src/utils/normalizadores.test.ts` e `src/utils/filtrosClientes.test.ts`.
 
 ### Matriz de Anomalias e Decisões Técnicas
 
 | Aba / Campo                      | Anomalia Identificada na Inspeção                                                                                                                | Decisão de Normalização                                                                                                                                                |
-| :------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `clientes` (colunas finais)      | Presença de 14 colunas vazias sem título ao final de todas as linhas (`"",""`...)                                                                | `Papa.parse` com `header: true` mapeia apenas cabeçalhos nomeados; colunas sem chave são ignoradas na normalização                                                     |
 | `clientes.dataNascimento`        | Datas entregues como string ISO (`"1990-05-14"`); `new Date(iso)` recua 1 dia no fuso UTC-3 e datas impossíveis (ex.: `31/02`) sofrem _rollover_ | `normalizarData()` extrai ano, mês e dia via regex, instancia `new Date(ano, mes - 1, dia)` localmente e valida o calendário, retornando `undefined` se inválida       |
 | `clientes.nomeSocial` / `rg`     | Campos opcionais ausentes vêm como string vazia `""` (ou `"ISENTO"` no RG de PJ)                                                                 | `normalizarTextoVazio()` converte strings vazias ou só com espaços em `undefined`                                                                                      |
@@ -60,6 +64,7 @@ Os dados são consumidos em tempo de execução via `fetch()` + `Response.text()
 ```bash
 npm install
 npm run dev
+
 ```
 
 Para executar a suíte de testes unitários, validação de tipagem e build de produção:
@@ -68,4 +73,5 @@ Para executar a suíte de testes unitários, validação de tipagem e build de p
 npm test
 npm run lint
 npm run build
+
 ```
