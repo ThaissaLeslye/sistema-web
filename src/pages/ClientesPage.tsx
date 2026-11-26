@@ -22,7 +22,7 @@ export function ClientesPage() {
                     <h1
                         id="titulo-listagem-clientes"
                         className="h4 text-uppercase fw-bold mb-1"
-                        style={{ color: "var(--cor-primaria-escura)" }}
+                        style={{ color: "var(--cor-primaria)" }}
                     >
                         Clientes
                     </h1>

@@ -15,7 +15,7 @@ export function PaginaNaoEncontrada() {
             <h1
                 id="titulo-pagina-nao-encontrada"
                 className="h4 fw-bold mb-2"
-                style={{ color: "var(--cor-primaria-escura)" }}
+                style={{ color: "var(--cor-primaria)" }}
             >
                 Página não encontrada
             </h1>

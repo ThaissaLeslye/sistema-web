@@ -1,9 +1,7 @@
 :root {
     /* Tokens de cor institucionais */
-    --cor-primaria-escura: #1e0ae8;
-    --cor-primaria: #0070c0;
-    --cor-primaria-hover: #005a9e;
-    --cor-destaque: #00ac15;
+    --cor-primaria: rgb(30, 10, 232);
+    --cor-primaria-hover: #00ac15;
     --cor-fundo-pagina: #f5f7fa;
     --cor-superficie: #ffffff;
     --cor-borda: #e2e8f0;
@@ -31,38 +29,40 @@
     --bs-border-color: var(--cor-borda);
     --bs-link-color: var(--cor-primaria);
     --bs-link-hover-color: var(--cor-primaria-hover);
+    --bs-link-color-rgb: 30, 10, 232;
+    --bs-link-hover-color-rgb: 0, 172, 21;
     --bs-focus-ring-color: rgba(0, 124, 194, 0.25);
 }
 
 /* Sobrescrita das variáveis de componente do Bootstrap 5 para botões institucionais */
 .btn-primary {
     --bs-btn-color: var(--cor-superficie);
-    --bs-btn-bg: var(--cor-primaria-escura);
-    --bs-btn-border-color: var(--cor-primaria-escura);
+    --bs-btn-bg: var(--cor-primaria);
+    --bs-btn-border-color: var(--cor-primaria);
     --bs-btn-hover-color: var(--cor-superficie);
-    --bs-btn-hover-bg: var(--cor-destaque);
-    --bs-btn-hover-border-color: var(--cor-destaque);
-    --bs-btn-focus-shadow-rgb: var(--cor-primaria-escura-rgb);
+    --bs-btn-hover-bg: var(--cor-primaria-hover);
+    --bs-btn-hover-border-color: var(--cor-primaria-hover);
+    --bs-btn-focus-shadow-rgb: var(--cor-primaria-rgb);
     --bs-btn-active-color: var(--cor-superficie);
-    --bs-btn-active-bg: var(--cor-destaque);
-    --bs-btn-active-border-color: var(--cor-destaque);
+    --bs-btn-active-bg: var(--cor-primaria-hover);
+    --bs-btn-active-border-color: var(--cor-primaria-hover);
     --bs-btn-disabled-color: var(--cor-superficie);
-    --bs-btn-disabled-bg: var(--cor-primaria-escura);
-    --bs-btn-disabled-border-color: var(--cor-primaria-escura);
+    --bs-btn-disabled-bg: var(--cor-primaria);
+    --bs-btn-disabled-border-color: var(--cor-primaria);
 }
 
 .btn-outline-primary {
-    --bs-btn-color: var(--cor-primaria-escura);
-    --bs-btn-border-color: var(--cor-primaria-escura);
+    --bs-btn-color: var(--cor-primaria);
+    --bs-btn-border-color: var(--cor-primaria);
     --bs-btn-hover-color: var(--cor-superficie);
-    --bs-btn-hover-bg: var(--cor-primaria-escura);
-    --bs-btn-hover-border-color: var(--cor-primaria-escura);
-    --bs-btn-focus-shadow-rgb: var(--cor-primaria-escura-rgb);
+    --bs-btn-hover-bg: var(--cor-primaria);
+    --bs-btn-hover-border-color: var(--cor-primaria);
+    --bs-btn-focus-shadow-rgb: var(--cor-primaria-rgb);
     --bs-btn-active-color: var(--cor-superficie);
-    --bs-btn-active-bg: var(--cor-destaque);
-    --bs-btn-active-border-color: var(--cor-destaque);
-    --bs-btn-disabled-color: var(--cor-primaria-escura);
-    --bs-btn-disabled-border-color: var(--cor-primaria-escura);
+    --bs-btn-active-bg: var(--cor-primaria-hover);
+    --bs-btn-active-border-color: var(--cor-primaria-hover);
+    --bs-btn-disabled-color: var(--cor-primaria);
+    --bs-btn-disabled-border-color: var(--cor-primaria);
 }
 
 /* Mantém apenas suavização tipográfica complementar ao Bootstrap Reboot */
@@ -89,7 +89,7 @@ body {
     z-index: 100;
     padding: 0.5rem 1rem;
     background-color: var(--cor-superficie);
-    color: var(--cor-primaria-escura);
+    color: var(--cor-primaria);
     font-weight: 600;
     border-radius: 4px;
     text-decoration: none;
@@ -122,15 +122,15 @@ body {
     padding: 0.5rem 1rem;
     font: inherit;
     font-weight: 600;
-    color: var(--cor-primaria-escura);
+    color: var(--cor-primaria);
     background-color: var(--cor-superficie);
-    border: 1px solid var(--cor-primaria-escura);
+    border: 1px solid var(--cor-primaria);
     border-radius: 6px;
     cursor: pointer;
 }
 
 .botao-secundario:hover {
-    background-color: var(--cor-primaria-escura);
+    background-color: var(--cor-primaria);
     color: var(--cor-superficie);
 }
 
@@ -162,7 +162,7 @@ body {
 
 .tabela-clientes thead th {
     background-color: var(--cor-fundo-pagina);
-    color: var(--cor-primaria-escura);
+    color: var(--cor-primaria);
     font-weight: 600;
     white-space: nowrap;
 }

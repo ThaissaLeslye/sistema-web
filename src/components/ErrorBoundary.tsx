@@ -77,9 +77,9 @@ export class ErrorBoundary extends Component<
                         onClick={() => this.handleRecarregar()}
                         style={{
                             padding: "0.5rem 1rem",
-                            backgroundColor: "var(--cor-primaria-escura)",
+                            backgroundColor: "var(--cor-primaria)",
                             color: "var(--cor-superficie)",
-                            border: "1px solid var(--cor-primaria-escura)",
+                            border: "1px solid var(--cor-primaria)",
                             borderRadius: "6px",
                             cursor: "pointer",
                             fontWeight: 600,

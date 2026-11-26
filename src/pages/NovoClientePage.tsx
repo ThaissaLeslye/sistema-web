@@ -7,7 +7,7 @@ export function NovoClientePage() {
             aria-labelledby="titulo-novo-cliente"
         >
             <div className="mb-3">
-                <Link to="/" className="text-decoration-none small fw-semibold">
+                <Link to="/" className="text-decoration-none small">
                     ← Voltar para clientes
                 </Link>
             </div>
@@ -15,7 +15,7 @@ export function NovoClientePage() {
             <h1
                 id="titulo-novo-cliente"
                 className="h4 text-uppercase fw-bold mb-2"
-                style={{ color: "var(--cor-primaria-escura)" }}
+                style={{ color: "var(--cor-primaria)" }}
             >
                 Novo Cliente
             </h1>

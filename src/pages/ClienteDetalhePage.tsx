@@ -17,7 +17,7 @@ export function ClienteDetalhePage() {
             <h1
                 id="titulo-detalhe-cliente"
                 className="h4 text-uppercase fw-bold mb-2"
-                style={{ color: "var(--cor-primaria-escura)" }}
+                style={{ color: "var(--cor-primaria)" }}
             >
                 Detalhes do Cliente
             </h1>

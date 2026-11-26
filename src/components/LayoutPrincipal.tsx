@@ -25,7 +25,7 @@ export function LayoutPrincipal({ children }: LayoutPrincipalProps) {
                     variant="dark"
                     expanded={menuAberto}
                     onToggle={setMenuAberto}
-                    style={{ backgroundColor: "var(--cor-primaria-escura)" }}
+                    style={{ backgroundColor: "var(--cor-primaria)" }}
                 >
                     <Container
                         style={{ maxWidth: "var(--largura-maxima-container)" }}
