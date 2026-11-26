@@ -9,15 +9,12 @@ import { filtrarClientes } from "../utils/filtrosClientes";
 const ITENS_POR_PAGINA = 10;
 
 export function ClientesPage() {
-    const { estado, recarregar } = useDadosBancarios();
+    const { estado, clientes: todosClientes, recarregar } = useDadosBancarios();
     const [termoBusca, setTermoBusca] = useState("");
     const [paginaAtual, setPaginaAtual] = useState(1);
     const inputBuscaRef = useRef<HTMLInputElement | null>(null);
 
     // Derivação da lista filtrada e da fatia paginada sem mutar os dados originais
-    const todosClientes: readonly Cliente[] =
-        estado.status === "success" ? estado.dados.clientes : [];
-
     const clientesFiltrados = filtrarClientes(todosClientes, termoBusca);
     const totalFiltrados = clientesFiltrados.length;
     const totalPaginas = Math.max(
@@ -77,14 +74,14 @@ export function ClientesPage() {
                         >
                             {termoBusca.trim() !== ""
                                 ? `${totalFiltrados} ${totalFiltrados === 1 ? "cliente encontrado" : "clientes encontrados"} de ${todosClientes.length}`
-                                : `Total de clintes: ${todosClientes.length}`}
+                                : `Total de clientes: ${todosClientes.length}`}
                         </p>
                     )}
                 </div>
 
                 <Link
                     to="/clientes/novo"
-                    className="btn btn-primary btn-md fw-semibold"
+                    className="btn btn-primary fw-semibold"
                 >
                     Novo Cliente
                 </Link>
