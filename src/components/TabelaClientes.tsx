@@ -1,5 +1,7 @@
-import { formatarCpfCnpj } from "../utils/formatadores";
+import { Table } from "react-bootstrap";
+import { Link } from "react-router-dom";
 import type { Cliente, EstadoRequisicao } from "../types/banking";
+import { formatarCpfCnpj } from "../utils/formatadores";
 
 export interface TabelaClientesProps {
     estado: EstadoRequisicao<readonly Cliente[]>;
@@ -47,33 +49,79 @@ export function TabelaClientes({
     }
 
     return (
-        <div className="tabela-responsiva">
-            <table className="tabela-clientes">
-                <caption className="tabela-clientes__legenda">
-                    Lista de clientes cadastrados, documentos, contato, agência
-                    e estado civil
-                </caption>
-                <thead>
-                    <tr>
-                        <th scope="col">Nome</th>
-                        <th scope="col">CPF / CNPJ</th>
-                        <th scope="col">E-mail</th>
-                        <th scope="col">Agência</th>
-                        <th scope="col">Estado civil</th>
+        <Table responsive hover className="align-middle caption-top mb-0">
+            <caption className="small text-secondary pt-0">
+                Lista de clientes cadastrados, documentos, contato, agência e
+                estado civil
+            </caption>
+            <thead className="table-light">
+                <tr>
+                    <th
+                        scope="col"
+                        className="text-nowrap"
+                        style={{ color: "var(--cor-primaria)" }}
+                    >
+                        Nome
+                    </th>
+                    <th
+                        scope="col"
+                        className="text-nowrap"
+                        style={{ color: "var(--cor-primaria)" }}
+                    >
+                        CPF / CNPJ
+                    </th>
+                    <th
+                        scope="col"
+                        className="text-nowrap"
+                        style={{ color: "var(--cor-primaria)" }}
+                    >
+                        E-mail
+                    </th>
+                    <th
+                        scope="col"
+                        className="text-nowrap"
+                        style={{ color: "var(--cor-primaria)" }}
+                    >
+                        Agência
+                    </th>
+                    <th
+                        scope="col"
+                        className="text-nowrap"
+                        style={{ color: "var(--cor-primaria)" }}
+                    >
+                        Estado civil
+                    </th>
+                    <th
+                        scope="col"
+                        className="text-nowrap text-center"
+                        style={{ color: "var(--cor-primaria)" }}
+                    >
+                        Ações
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                {estado.dados.map((cliente) => (
+                    <tr key={cliente.id}>
+                        <td>{cliente.nome}</td>
+                        <td className="text-nowrap">
+                            {formatarCpfCnpj(cliente.cpfCnpj)}
+                        </td>
+                        <td>{cliente.email || "Não informado"}</td>
+                        <td>{cliente.codigoAgencia ?? "Não informado"}</td>
+                        <td>{cliente.estadoCivil}</td>
+                        <td className="text-center">
+                            <Link
+                                to={`/clientes/${cliente.id}`}
+                                className="btn btn-outline-primary btn-sm fw-semibold text-nowrap"
+                                aria-label={`Ver detalhes de ${cliente.nome}`}
+                            >
+                                Ver detalhes
+                            </Link>
+                        </td>
                     </tr>
-                </thead>
-                <tbody>
-                    {estado.dados.map((cliente) => (
-                        <tr key={cliente.id}>
-                            <td>{cliente.nome}</td>
-                            <td>{formatarCpfCnpj(cliente.cpfCnpj)}</td>
-                            <td>{cliente.email || "Não informado"}</td>
-                            <td>{cliente.codigoAgencia ?? "Não informado"}</td>
-                            <td>{cliente.estadoCivil}</td>
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
-        </div>
+                ))}
+            </tbody>
+        </Table>
     );
 }
