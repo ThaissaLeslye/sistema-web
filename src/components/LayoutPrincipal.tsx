@@ -25,6 +25,7 @@ export function LayoutPrincipal({ children }: LayoutPrincipalProps) {
                     variant="dark"
                     expanded={menuAberto}
                     onToggle={setMenuAberto}
+                    aria-label="Navegação principal"
                     style={{ backgroundColor: "var(--cor-primaria)" }}
                 >
                     <Container
@@ -52,10 +53,7 @@ export function LayoutPrincipal({ children }: LayoutPrincipalProps) {
                         />
 
                         <Navbar.Collapse id="navegacao-principal">
-                            <Nav
-                                className="ms-auto gap-md-2"
-                                aria-label="Navegação principal"
-                            >
+                            <Nav className="ms-auto gap-md-2">
                                 <Nav.Item>
                                     <NavLink
                                         to="/"
@@ -104,7 +102,7 @@ export function LayoutPrincipal({ children }: LayoutPrincipalProps) {
                     style={{ maxWidth: "var(--largura-maxima-container)" }}
                     className="text-center"
                 >
-                    Suporte: Central de Atendimento · Sistema Web
+                    Sistema Web · Gestão de Clientes
                 </Container>
             </footer>
         </>
