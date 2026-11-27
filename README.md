@@ -2,24 +2,27 @@
 
 Aplicação web desenvolvida em **React**, **TypeScript (modo estrito)**, **Vite**, **Bootstrap 5 (React-Bootstrap)** e **React Router** para consulta de clientes, contas bancárias, agências e cadastro em memória a partir de dados consumidos em tempo de execução via Google Sheets (CSV).
 
+[**Acesse aqui a aplicação publicada!**](https://sistema-web-teste-pratico.vercel.app)
+
 ## Arquitetura e Organização de Pastas
 
 ```text
 src/
 ├── components/   # Componentes reutilizáveis de layout, listagem e resiliência (ErrorBoundary, LayoutPrincipal, TabelaClientes)
 ├── config/       # Constantes imutáveis de configuração (URLs das abas CSV)
-├── context/      # Estado global em memória para clientes, contas e agências
-├── hooks/        # Custom hooks para encapsular ciclo de vida e requisições assíncronas (useDadosBancarios)
-├── pages/        # Telas roteadas da aplicação (ClientesPage com busca e paginação, ClienteDetalhePage, NovoClientePage, PaginaNaoEncontrada)
+├── context/      # Estado global em memória acima das rotas (DadosBancariosContext e DadosBancariosProvider)
+├── hooks/        # Custom hooks para consumo seguro do contexto de dados (useDadosBancarios)
+├── pages/        # Telas roteadas da aplicação (ClientesPage, ClienteDetalhePage com ficha/agência/contas, NovoClientePage, PaginaNaoEncontrada)
 ├── services/     # Comunicação HTTP (Fetch API) e leitura tipada das abas CSV
 ├── types/        # Contratos TypeScript estritos do domínio bancário
-└── utils/        # Funções puras de normalização, filtragem de busca, máscaras, formatadores, validações e testes unitários (Vitest)
+└── utils/        # Funções puras de normalização, filtragem de busca, vínculos relacionais, formatadores e testes unitários (Vitest)
 ```
 
 ## Interface, Tema e Roteamento SPA
 
 - **Bootstrap 5 + React-Bootstrap:** Utilizado para estruturação de grid responsivo, barra de navegação colapsável (`Navbar`), tabela responsiva (`Table`) e paginação (`Pagination`) sem depender do bundle JavaScript imperativo do Bootstrap (`bootstrap.bundle.min.js`), mantendo o controle de estado 100% declarativo no React.
 - **Customização de Tema via Cascata CSS (`src/index.css`):** O CSS base do Bootstrap é importado antes de `src/index.css` em `src/main.tsx`, permitindo sobrescrever variáveis nativas (`--bs-primary`, `--bs-body-bg`, `--bs-border-color`, `--bs-btn-*`) com os tokens institucionais do projeto sem editar arquivos da biblioteca nem recorrer a `!important`.
+- **Estado Global e Vínculos Relacionais (`src/context/` e `src/utils/detalhesCliente.ts`):** O carregamento das três planilhas ocorre uma única vez no `DadosBancariosProvider` posicionado acima de `<Routes>`, evitando requisições repetidas durante a navegação. Na tela de detalhes, funções puras realizam o cruzamento entre cliente, contas (comparando apenas dígitos puros do CPF/CNPJ) e agência (pelo código numérico), aplicando formatação monetária (`BRL`), datas locais e fallbacks explícitos (`"Não informado"`).
 - **Busca e Paginação Derivadas (`src/utils/filtrosClientes.ts` e `src/pages/ClientesPage.tsx`):**
 - **Filtragem Imutável:** A busca é calculada como estado derivado durante a renderização sem mutar a lista original carregada da planilha. Nomes são comparados via normalização Unicode (`NFD`) ignorando acentos e maiúsculas/minúsculas; documentos são comparados apenas pelos dígitos (`\D`), exigindo ao menos um dígito no termo (`termoDigitos.length > 0`) para evitar falsos positivos.
 - **Paginação e Acessibilidade:** Os resultados filtrados são paginados em blocos de até 10 clientes (`ITENS_POR_PAGINA = 10`) com redefinição automática para a página `1` ao alterar a busca, tratamento explícito de busca sem correspondência (`Limpar busca` com retorno de foco ao campo), anúncio dinâmico de contagem (`role="status"` e `aria-live="polite"`) e links de ação individualizados (`aria-label`) para acesso aos detalhes de cada cliente.
@@ -30,7 +33,7 @@ src/
 | ---------------- | --------------------- | ------------------------------------------------------------------------------------------------- |
 | `/`              | `ClientesPage`        | Listagem paginada (10 por página), busca em tempo real por nome ou CPF/CNPJ e acesso aos detalhes |
 | `/clientes/novo` | `NovoClientePage`     | Tela dedicada ao cadastro de novos clientes em memória                                            |
-| `/clientes/:id`  | `ClienteDetalhePage`  | Exibição detalhada do cliente selecionado                                                         |
+| `/clientes/:id`  | `ClienteDetalhePage`  | Ficha cadastral completa, dados da agência vinculada e tabela de contas bancárias do cliente      |
 | `*`              | `PaginaNaoEncontrada` | Tela de fallback (404) para rotas inexistentes                                                    |
 
 ## Camada de Dados CSV e Matriz de Anomalias
@@ -38,7 +41,7 @@ src/
 Os dados são consumidos em tempo de execução via `fetch()` + `Response.text()` e processados com **PapaParse** (`header: true`, `skipEmptyLines: 'greedy'`) combinado com funções puras em `src/utils/normalizadores.ts`:
 
 - **Separação entre Armazenamento e Exibição (`src/utils/formatadores.ts`):** Identificadores (`cpfCnpj`) são mantidos apenas com dígitos puros nos objetos de domínio para garantir integridade relacional entre clientes e contas; a formatação visual é aplicada exclusivamente na camada de interface.
-- **Recusa a Dados Fabricados (`src/types/banking.ts` e `src/utils/normalizadores.ts`):** Em domínio bancário, células ausentes ou corrompidas não devem ser mascaradas por valores válidos fictícios (como assumir `"Solteiro"`, `"corrente"` ou `0`). Valores inválidos são explicitamente marcados como `"Não Informado"` ou `undefined` e cobertos por testes unitários em `src/utils/normalizadores.test.ts` e `src/utils/filtrosClientes.test.ts`.
+- **Recusa a Dados Fabricados (`src/types/banking.ts` e `src/utils/normalizadores.ts`):** Em domínio bancário, células ausentes ou corrompidas não devem ser mascaradas por valores válidos fictícios (como assumir `"Solteiro"`, `"corrente"` ou `0`). Valores inválidos são explicitamente marcados como `"Não Informado"` ou `undefined` e cobertos por testes unitários em `src/utils/normalizadores.test.ts`, `src/utils/filtrosClientes.test.ts` e `src/utils/detalhesCliente.test.ts`.
 
 ### Matriz de Anomalias e Decisões Técnicas
 
