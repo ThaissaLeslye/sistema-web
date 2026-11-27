@@ -1,13 +1,12 @@
 :root {
     /* Tokens de cor institucionais */
-    --cor-primaria: #1e0ae8;
+    --cor-primaria: #003568;
     --cor-primaria-rgb: 30, 10, 232;
     --cor-primaria-hover: #00ac15;
     --cor-fundo-pagina: #f5f7fa;
     --cor-superficie: #ffffff;
     --cor-borda: #e2e8f0;
-    --cor-texto-principal: #0f172a;
-    --cor-texto-secundario: #475569;
+    --cor-texto-secundario: #1c1e22;
     --cor-sucesso: #15803d;
     --cor-erro: #b91c1c;
 
@@ -19,14 +18,14 @@
     --bs-primary: var(--cor-primaria);
     --bs-primary-rgb: var(--cor-primaria-rgb);
     --bs-secondary: var(--cor-texto-secundario);
-    --bs-secondary-rgb: 71, 85, 105;
+    --bs-secondary-rgb: 150, 150, 180;
     --bs-success: var(--cor-sucesso);
     --bs-success-rgb: 21, 128, 61;
     --bs-danger: var(--cor-erro);
     --bs-danger-rgb: 185, 28, 28;
     --bs-body-font-family: var(--fonte-principal);
     --bs-body-bg: var(--cor-fundo-pagina);
-    --bs-body-color: var(--cor-texto-principal);
+    --bs-body-color: var(--cor-primaria);
     --bs-border-color: var(--cor-borda);
     --bs-link-color: var(--cor-primaria);
     --bs-link-hover-color: var(--cor-primaria-hover);

@@ -56,7 +56,7 @@ export class ErrorBoundary extends Component<
                         backgroundColor: "var(--cor-superficie)",
                         border: "1px solid var(--cor-erro)",
                         borderRadius: "8px",
-                        color: "var(--cor-texto-principal)",
+                        color: "var(--cor-primaria)",
                     }}
                 >
                     <h1
