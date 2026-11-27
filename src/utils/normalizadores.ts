@@ -8,7 +8,7 @@ import type {
 } from "../types/banking";
 
 // Lista imutável dos estados civis aplicáveis exclusivamente a Pessoa Física
-const ESTADOS_CIVIS_PF: readonly EstadoCivilPessoaFisica[] = [
+export const ESTADOS_CIVIS_PF: readonly EstadoCivilPessoaFisica[] = [
     "Solteiro",
     "Casado",
     "Viúvo",
@@ -16,7 +16,7 @@ const ESTADOS_CIVIS_PF: readonly EstadoCivilPessoaFisica[] = [
 ];
 
 // Type Guard para validar estado civil de Pessoa Física sem asserções de tipo inseguras
-function isEstadoCivilPfValido(
+export function isEstadoCivilPfValido(
     valor: string,
 ): valor is EstadoCivilPessoaFisica {
     return ESTADOS_CIVIS_PF.some((estado) => estado === valor);

@@ -9,7 +9,11 @@ import {
     carregarDadosBancarios,
     type DadosPlanilhaBancaria,
 } from "../services/planilhaService";
-import type { EstadoRequisicao } from "../types/banking";
+import type {
+    Cliente,
+    EstadoRequisicao,
+    NovoClienteInput,
+} from "../types/banking";
 import {
     DadosBancariosContext,
     type DadosBancariosContextValue,
@@ -26,12 +30,35 @@ export function DadosBancariosProvider({
         EstadoRequisicao<DadosPlanilhaBancaria>
     >({ status: "loading" });
 
+    // Mantém os clientes cadastrados na sessão atual isolados dos dados externos da planilha
+    const [clientesCadastrados, setClientesCadastrados] = useState<
+        readonly Cliente[]
+    >([]);
+
     const [tentativa, setTentativa] = useState<number>(0);
 
     const recarregar = useCallback((): void => {
         setEstado({ status: "loading" });
         setTentativa((atual) => atual + 1);
     }, []);
+
+    // Gera identificador único no navegador e insere o novo cliente no topo da lista em memória
+    const adicionarCliente = useCallback(
+        (novoCliente: NovoClienteInput): Cliente => {
+            const clienteComId: Cliente = {
+                id: crypto.randomUUID(),
+                ...novoCliente,
+            };
+
+            setClientesCadastrados((anteriores) => [
+                clienteComId,
+                ...anteriores,
+            ]);
+
+            return clienteComId;
+        },
+        [],
+    );
 
     useEffect(() => {
         let ativo = true;
@@ -59,8 +86,9 @@ export function DadosBancariosProvider({
     }, [tentativa]);
 
     const valorContexto = useMemo<DadosBancariosContextValue>(() => {
-        const clientes =
+        const clientesPlanilha =
             estado.status === "success" ? estado.dados.clientes : [];
+        const clientes = [...clientesCadastrados, ...clientesPlanilha];
         const contas = estado.status === "success" ? estado.dados.contas : [];
         const agencias =
             estado.status === "success" ? estado.dados.agencias : [];
@@ -70,9 +98,10 @@ export function DadosBancariosProvider({
             clientes,
             contas,
             agencias,
+            adicionarCliente,
             recarregar,
         };
-    }, [estado, recarregar]);
+    }, [estado, clientesCadastrados, adicionarCliente, recarregar]);
 
     return (
         <DadosBancariosContext.Provider value={valorContexto}>
