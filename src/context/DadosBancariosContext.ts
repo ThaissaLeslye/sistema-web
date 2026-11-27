@@ -5,6 +5,7 @@ import type {
     Cliente,
     Conta,
     EstadoRequisicao,
+    NovoClienteInput,
 } from "../types/banking";
 
 export interface DadosBancariosContextValue {
@@ -12,6 +13,7 @@ export interface DadosBancariosContextValue {
     clientes: readonly Cliente[];
     contas: readonly Conta[];
     agencias: readonly Agencia[];
+    adicionarCliente: (novoCliente: NovoClienteInput) => Cliente;
     recarregar: () => void;
 }
 
