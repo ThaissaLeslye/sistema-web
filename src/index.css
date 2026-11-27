@@ -1,7 +1,7 @@
 :root {
     /* Tokens de cor institucionais */
     --cor-primaria: #003568;
-    --cor-primaria-rgb: 30, 10, 232;
+    --cor-primaria-rgb: 0, 53, 104;
     --cor-primaria-hover: #00ac15;
     --cor-fundo-pagina: #f5f7fa;
     --cor-superficie: #ffffff;
@@ -63,6 +63,21 @@
     --bs-btn-active-border-color: var(--cor-primaria-hover);
     --bs-btn-disabled-color: var(--cor-primaria);
     --bs-btn-disabled-border-color: var(--cor-primaria);
+}
+
+/* Sobrescrita das variáveis de componente do Bootstrap 5 para paginação institucional */
+.pagination .page-link {
+    --bs-pagination-color: var(--cor-primaria);
+    --bs-pagination-bg: var(--cor-superficie);
+    --bs-pagination-border-color: var(--cor-borda);
+    --bs-pagination-hover-color: var(--cor-superficie);
+    --bs-pagination-hover-bg: var(--cor-primaria);
+    --bs-pagination-hover-border-color: var(--cor-primaria);
+    --bs-pagination-focus-shadow-rgb: var(--cor-primaria-rgb);
+    --bs-pagination-active-color: var(--cor-superficie);
+    --bs-pagination-active-bg: var(--cor-primaria);
+    --bs-pagination-active-border-color: var(--cor-primaria);
+    --bs-pagination-focus-color: var(--cor-primaria);
 }
 
 /* Mantém apenas suavização tipográfica complementar ao Bootstrap Reboot */
