@@ -1,6 +1,6 @@
 # Sistema Web — Gestão de Clientes
 
-Aplicação web desenvolvida em **React**, **TypeScript (modo estrito)**, **Vite**, **Bootstrap 5 (React-Bootstrap)** e **React Router** para consulta de clientes, contas bancárias, agências e cadastro em memória a partir de dados consumidos em tempo de execução via Google Sheets (CSV).
+Aplicação web desenvolvida em **React**, **TypeScript (modo estrito)**, **Vite**, **Bootstrap 5 (React-Bootstrap)**, **React Router**, **React Hook Form** e **Zod** para consulta de clientes, contas bancárias, agências e cadastro em memória a partir de dados consumidos em tempo de execução via Google Sheets (CSV).
 
 [**Acesse aqui a aplicação publicada!**](https://sistema-web-teste-pratico.vercel.app)
 
@@ -12,10 +12,11 @@ src/
 ├── config/       # Constantes imutáveis de configuração (URLs das abas CSV)
 ├── context/      # Estado global em memória acima das rotas (DadosBancariosContext e DadosBancariosProvider)
 ├── hooks/        # Custom hooks para consumo seguro do contexto de dados (useDadosBancarios)
-├── pages/        # Telas roteadas da aplicação (ClientesPage, ClienteDetalhePage com ficha/agência/contas, NovoClientePage, PaginaNaoEncontrada)
+├── pages/        # Telas roteadas da aplicação (ClientesPage, ClienteDetalhePage com ficha/agência/contas, NovoClientePage com cadastro em memória, PaginaNaoEncontrada)
 ├── services/     # Comunicação HTTP (Fetch API) e leitura tipada das abas CSV
 ├── types/        # Contratos TypeScript estritos do domínio bancário
-└── utils/        # Funções puras de normalização, filtragem de busca, vínculos relacionais, formatadores e testes unitários (Vitest)
+└── utils/        # Funções puras de normalização, validação (Zod), filtragem de busca, vínculos relacionais, máscaras, formatadores e testes unitários (Vitest)
+
 ```
 
 ## Interface, Tema e Roteamento SPA
@@ -27,21 +28,22 @@ src/
 - **Filtragem Imutável:** A busca é calculada como estado derivado durante a renderização sem mutar a lista original carregada da planilha. Nomes são comparados via normalização Unicode (`NFD`) ignorando acentos e maiúsculas/minúsculas; documentos são comparados apenas pelos dígitos (`\D`), exigindo ao menos um dígito no termo (`termoDigitos.length > 0`) para evitar falsos positivos.
 - **Paginação e Acessibilidade:** Os resultados filtrados são paginados em blocos de até 10 clientes (`ITENS_POR_PAGINA = 10`) com redefinição automática para a página `1` ao alterar a busca, tratamento explícito de busca sem correspondência (`Limpar busca` com retorno de foco ao campo), anúncio dinâmico de contagem (`role="status"` e `aria-live="polite"`) e links de ação individualizados (`aria-label`) para acesso aos detalhes de cada cliente.
 
+- **Cadastro em Memória e Validação (`src/utils/clienteSchema.ts`, `src/context/DadosBancariosProvider.tsx` e `src/pages/NovoClientePage.tsx`):** O formulário utiliza **React Hook Form** integrado a um esquema **Zod** puro (`criarEsquemaNovoCliente`), validando tamanho (11 ou 14 dígitos) e unicidade de CPF/CNPJ, data não futura, valores financeiros não negativos com suporte a vírgula decimal, adaptação automática para Pessoa Jurídica (rótulo `"Data de abertura"` e estado civil fixado em `"Não Possui"` para CNPJ de 14 dígitos) e seleção de agência existente. Os novos clientes recebem `id` gerado no navegador via `crypto.randomUUID()`, permanecem no topo da listagem até o recarregamento da página e exibem confirmação nominal com link direto para os detalhes.
 - **Roteamento no Cliente e Fallback SPA (`vercel.json`):** A navegação entre telas ocorre sem recarregamento de página via `react-router-dom`, apoiada pela regra de _rewrite_ (`/(.*) -> /index.html`) na hospedagem para evitar erros HTTP 404 ao acessar ou recarregar rotas internas diretamente.
 
-| Rota             | Página                | Responsabilidade                                                                                  |
-| ---------------- | --------------------- | ------------------------------------------------------------------------------------------------- |
-| `/`              | `ClientesPage`        | Listagem paginada (10 por página), busca em tempo real por nome ou CPF/CNPJ e acesso aos detalhes |
-| `/clientes/novo` | `NovoClientePage`     | Tela dedicada ao cadastro de novos clientes em memória                                            |
-| `/clientes/:id`  | `ClienteDetalhePage`  | Ficha cadastral completa, dados da agência vinculada e tabela de contas bancárias do cliente      |
-| `*`              | `PaginaNaoEncontrada` | Tela de fallback (404) para rotas inexistentes                                                    |
+| Rota             | Página                | Responsabilidade                                                                                      |
+| ---------------- | --------------------- | ----------------------------------------------------------------------------------------------------- |
+| `/`              | `ClientesPage`        | Listagem paginada (10 por página), busca em tempo real por nome ou CPF/CNPJ e acesso aos detalhes     |
+| `/clientes/novo` | `NovoClientePage`     | Formulário acessível de cadastro de novos clientes em memória com validação via React Hook Form + Zod |
+| `/clientes/:id`  | `ClienteDetalhePage`  | Ficha cadastral completa, dados da agência vinculada e tabela de contas bancárias do cliente          |
+| `*`              | `PaginaNaoEncontrada` | Tela de fallback (404) para rotas inexistentes                                                        |
 
 ## Camada de Dados CSV e Matriz de Anomalias
 
 Os dados são consumidos em tempo de execução via `fetch()` + `Response.text()` e processados com **PapaParse** (`header: true`, `skipEmptyLines: 'greedy'`) combinado com funções puras em `src/utils/normalizadores.ts`:
 
 - **Separação entre Armazenamento e Exibição (`src/utils/formatadores.ts`):** Identificadores (`cpfCnpj`) são mantidos apenas com dígitos puros nos objetos de domínio para garantir integridade relacional entre clientes e contas; a formatação visual é aplicada exclusivamente na camada de interface.
-- **Recusa a Dados Fabricados (`src/types/banking.ts` e `src/utils/normalizadores.ts`):** Em domínio bancário, células ausentes ou corrompidas não devem ser mascaradas por valores válidos fictícios (como assumir `"Solteiro"`, `"corrente"` ou `0`). Valores inválidos são explicitamente marcados como `"Não Informado"` ou `undefined` e cobertos por testes unitários em `src/utils/normalizadores.test.ts`, `src/utils/filtrosClientes.test.ts` e `src/utils/detalhesCliente.test.ts`.
+- **Recusa a Dados Fabricados (`src/types/banking.ts` e `src/utils/normalizadores.ts`):** Em domínio bancário, células ausentes ou corrompidas não devem ser mascaradas por valores válidos fictícios (como assumir `"Solteiro"`, `"corrente"` ou `0`). Valores inválidos são explicitamente marcados como `"Não Informado"` ou `undefined` e cobertos por testes unitários em `src/utils/normalizadores.test.ts`, `src/utils/filtrosClientes.test.ts`, `src/utils/detalhesCliente.test.ts` e `src/utils/clienteSchema.test.ts`.
 
 ### Matriz de Anomalias e Decisões Técnicas
 
