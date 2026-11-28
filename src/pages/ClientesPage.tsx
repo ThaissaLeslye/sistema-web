@@ -1,6 +1,6 @@
-import { useRef, useState } from "react";
-import { Button, Form, InputGroup, Pagination } from "react-bootstrap";
-import { Link } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import { Alert, Button, Form, InputGroup, Pagination } from "react-bootstrap";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { TabelaClientes } from "../components/TabelaClientes";
 import { useDadosBancarios } from "../hooks/useDadosBancarios";
 import type { Cliente, EstadoRequisicao } from "../types/banking";
@@ -8,11 +8,57 @@ import { filtrarClientes } from "../utils/filtrosClientes";
 
 const ITENS_POR_PAGINA = 10;
 
+interface ResumoClienteCadastrado {
+    id: string;
+    nome: string;
+}
+
+// Type Guard para validar os dados recebidos via state da navegação sem usar coerção 'as'
+function extrairClienteCadastrado(
+    state: unknown,
+): ResumoClienteCadastrado | undefined {
+    if (typeof state !== "object" || state === null) {
+        return undefined;
+    }
+
+    if (!("clienteCadastrado" in state)) {
+        return undefined;
+    }
+
+    const registro = state.clienteCadastrado;
+    if (typeof registro !== "object" || registro === null) {
+        return undefined;
+    }
+
+    if (
+        !("id" in registro) ||
+        !("nome" in registro) ||
+        typeof registro.id !== "string" ||
+        typeof registro.nome !== "string"
+    ) {
+        return undefined;
+    }
+
+    return { id: registro.id, nome: registro.nome };
+}
+
 export function ClientesPage() {
+    const location = useLocation();
+    const navigate = useNavigate();
     const { estado, clientes: todosClientes, recarregar } = useDadosBancarios();
     const [termoBusca, setTermoBusca] = useState("");
     const [paginaAtual, setPaginaAtual] = useState(1);
+    const [avisoCadastro, setAvisoCadastro] = useState<
+        ResumoClienteCadastrado | undefined
+    >(() => extrairClienteCadastrado(location.state));
     const inputBuscaRef = useRef<HTMLInputElement | null>(null);
+
+    // Limpa o state da história após capturar o aviso para não exibi-lo novamente ao atualizar a página
+    useEffect(() => {
+        if (extrairClienteCadastrado(location.state)) {
+            navigate(location.pathname, { replace: true, state: null });
+        }
+    }, [location.pathname, location.state, navigate]);
 
     // Derivação da lista filtrada e da fatia paginada sem mutar os dados originais
     const clientesFiltrados = filtrarClientes(todosClientes, termoBusca);
@@ -86,6 +132,25 @@ export function ClientesPage() {
                     Novo Cliente
                 </Link>
             </div>
+
+            {avisoCadastro && (
+                <Alert
+                    variant="success"
+                    dismissible
+                    onClose={() => setAvisoCadastro(undefined)}
+                    role="status"
+                    className="mb-3"
+                >
+                    Cliente <strong>{avisoCadastro.nome}</strong> cadastrado com
+                    sucesso!{" "}
+                    <Link
+                        to={`/clientes/${avisoCadastro.id}`}
+                        className="alert-link"
+                    >
+                        Ver detalhes do cliente
+                    </Link>
+                </Alert>
+            )}
 
             {/* Controle de pesquisa por nome ou documento */}
             <div className="mb-3">

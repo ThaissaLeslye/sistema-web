@@ -49,3 +49,35 @@ export function formatarTipoConta(tipo: TipoContaNormalizado): string {
     if (tipo === "poupanca") return "Poupança";
     return "Não informado";
 }
+
+// Aplica máscara progressiva de CPF (11 dígitos) ou CNPJ (14 dígitos) durante a digitação
+export function aplicarMascaraCpfCnpj(valor: string): string {
+    const digitos = extrairDigitos(valor).slice(0, 14);
+
+    if (digitos.length <= 11) {
+        if (digitos.length <= 3) return digitos;
+        if (digitos.length <= 6) {
+            return `${digitos.slice(0, 3)}.${digitos.slice(3)}`;
+        }
+        if (digitos.length <= 9) {
+            return `${digitos.slice(0, 3)}.${digitos.slice(3, 6)}.${digitos.slice(6)}`;
+        }
+        return `${digitos.slice(0, 3)}.${digitos.slice(3, 6)}.${digitos.slice(6, 9)}-${digitos.slice(9)}`;
+    }
+
+    if (digitos.length <= 12) {
+        return `${digitos.slice(0, 2)}.${digitos.slice(2, 5)}.${digitos.slice(5, 8)}/${digitos.slice(8)}`;
+    }
+    return `${digitos.slice(0, 2)}.${digitos.slice(2, 5)}.${digitos.slice(5, 8)}/${digitos.slice(8, 12)}-${digitos.slice(12)}`;
+}
+
+// Aplica máscara progressiva de data brasileira (dd/mm/aaaa) durante a digitação
+export function aplicarMascaraData(valor: string): string {
+    const digitos = extrairDigitos(valor).slice(0, 8);
+
+    if (digitos.length <= 2) return digitos;
+    if (digitos.length <= 4) {
+        return `${digitos.slice(0, 2)}/${digitos.slice(2)}`;
+    }
+    return `${digitos.slice(0, 2)}/${digitos.slice(2, 4)}/${digitos.slice(4)}`;
+}
